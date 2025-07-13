@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enhanced Protein Structure Comparison Tool</title>
+  <script type="text/javascript" src="https://chemapps.stolaf.edu/jmol/jsmol/JSmol.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0c1445, #1a2a6c, #0c1445);
+      color: #fff;
+      line-height: 1.6;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    
+    .header {
+      text-align: center;
+      padding: 30px 0;
+      margin-bottom: 30px;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    h1 {
+      font-size: 2.8rem;
+      margin-bottom: 15px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+      background: linear-gradient(to right, #ff9a9e, #fad0c4, #a1c4fd);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 1px;
+    }
+    
+    .subtitle {
+      font-size: 1.2rem;
+      max-width: 800px;
+      margin: 0 auto;
+      color: #e0e0e0;
+      line-height: 1.8;
+    }
+    
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 25px;
+      max-width: 1800px;
+      margin: 0 auto;
+    }
+    
+    .upload-section {
+      flex: 1;
+      min-width: 350px;
+      background: rgba(30, 30, 50, 0.85);
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .viewers-section {
+      flex: 3;
+      min-width: 800px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 25px;
+    }
+    
+    .panel {
+      background: rgba(30, 30, 50, 0.85);
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .viewer {
+      width: 100%;
+      max-width: 450px;
+    }
+    
+    .alignment-viewer {
+      width: 100%;
+      max-width: 100%;
+      margin-top: 20px;
+    }
+    
+    .viewer-header {
+      background: linear-gradient(to right, #4b6cb7, #182848);
+      padding: 17px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 1.4rem;
+      letter-spacing: 1px;
+    }
+    
+    .viewer-content {
+      padding: 20px;
+    }
+    
+    .controls {
+      margin-bottom: 25px;
+    }
+    
+    .protein-upload {
+      margin-bottom: 30px;
+      padding-bottom: 25px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    
+    .protein-upload:last-child {
+      border-bottom: none;
+    }
+    
+    .protein-name {
+      font-size: 1.4rem;
+      margin-bottom: 18px;
+      color: #ffcc00;
+      text-align: center;
+      font-weight: bold;
+      text-transform: capitalize;
+      letter-spacing: 1px;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    }
+    
+    label {
+      display: block;
+      margin: 18px 0 10px;
+      font-weight: bold;
+      color: #4fc3f7;
+      font-size: 1.1rem;
+    }
+    
+    input[type="file"], input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      background: rgba(20, 20, 40, 0.7);
+      border: 1px solid #4fc3f7;
+      border-radius: 10px;
+      color: white;
+      margin-bottom: 12px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+    
+    input[type="file"]:hover, input[type="text"]:hover {
+      border-color: #ffcc00;
+    }
+    
+    select {
+      width: 100%;
+      padding: 12px;
+      background: rgba(20, 20, 40, 0.7);
+      border: 1px solid #4fc3f7;
+      border-radius: 10px;
+      color: white;
+      font-size: 1rem;
+      margin-bottom: 18px;
+      transition: all 0.3s ease;
+    }
+    
+    select:hover {
+      border-color: #ffcc00;
+    }
+    
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(to right, #ff416c, #ff4b2b);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 15px;
+      box-shadow: 0 5px 15px rgba(255, 75, 43, 0.5);
+      letter-spacing: 0.5px;
+    }
+    
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 7px 20px rgba(255, 75, 43, 0.7);
+    }
+    
+    .btn-secondary {
+      background: linear-gradient(to right, #4b6cb7, #182848);
+    }
+    
+    .btn-secondary:hover {
+      box-shadow: 0 7px 20px rgba(75, 108, 183, 0.7);
+    }
+    
+    .highlight-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    .highlight-btn {
+      padding: 10px 18px;
+      background: rgba(40, 40, 70, 0.9);
+      border: 1px solid #4fc3f7;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 600;
+      flex-grow: 1;
+      text-align: center;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .highlight-btn:hover {
+      background: rgba(79, 195, 247, 0.3);
+      transform: translateY(-2px);
+    }
+    
+    .instructions {
+      background: rgba(20, 20, 40, 0.7);
+      border-radius: 12px;
+      padding: 25px;
+      margin-top: 25px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .instructions h3 {
+      color: #4fc3f7;
+      margin-bottom: 18px;
+      text-align: center;
+      font-size: 1.3rem;
+    }
+    
+    .instructions ul {
+      padding-left: 25px;
+      margin-bottom: 18px;
+    }
+    
+    .instructions li {
+      margin-bottom: 12px;
+      font-size: 1.05rem;
+      line-height: 1.5;
+    }
+    
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      padding: 25px;
+      color: #aaa;
+      font-size: 1rem;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 10px;
+    }
+    
+    #jsmol1, #jsmol2, #jsmol3 {
+      width: 100%;
+      height: 350px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #aaa;
+      font-style: italic;
+      font-size: 1.1rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .protein-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+    
+    .color-palette {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    
+    .color-option {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+    
+    .color-option:hover {
+      transform: scale(1.15);
+    }
+    
+    .color-option.selected {
+      border-color: white;
+      transform: scale(1.1);
+    }
+    
+    .status-bar {
+      padding: 12px;
+      background: rgba(40, 40, 70, 0.9);
+      border-radius: 8px;
+      margin-top: 15px;
+      text-align: center;
+      font-weight: 600;
+      display: none;
+    }
+    
+    .status-bar.loading {
+      background: linear-gradient(to right, #4b6cb7, #182848);
+    }
+    
+    .status-bar.success {
+      background: linear-gradient(to right, #0f9b0f, #3ddb3d);
+    }
+    
+    .status-bar.error {
+      background: linear-gradient(to right, #b21f1f, #ff416c);
+    }
+    
+    .progress-bar {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+      margin-top: 10px;
+      overflow: hidden;
+      display: none;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(to right, #4fc3f7, #2196F3);
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+    
+    /* Sequence alignment styles - IMPROVED */
+    .sequence-alignment {
+      width: 100%;
+      overflow-x: auto;
+      background: rgba(20, 20, 40, 0.7);
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-family: monospace;
+      font-size: 14px;
+    }
+    
+    .alignment-wrapper {
+      display: flex;
+      flex-direction: column;
+      min-width: max-content;
+    }
+    
+    .alignment-row {
+      display: flex;
+      align-items: center;
+      height: 24px;
+    }
+    
+    .position-indicator {
+      display: flex;
+      margin-bottom: 5px;
+    }
+    
+    .sequence-name {
+      min-width: 100px;
+      width: 100px;
+      color: #4fc3f7;
+      font-weight: bold;
+      margin-right: 10px;
+      text-align: right;
+      padding-right: 10px;
+      box-sizing: border-box;
+      flex-shrink: 0;
+    }
+    
+    .sequence-residues {
+      display: flex;
+      flex-wrap: nowrap;
+    }
+    
+    .residue {
+      display: inline-flex;
+      width: 16px;
+      height: 20px;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-radius: 3px;
+      position: relative;
+      box-sizing: border-box;
+      font-family: monospace;
+      font-weight: bold;
+    }
+    
+    .residue:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.2);
+    }
+    
+    .residue.highlighted {
+      background: #ff416c;
+      color: white;
+      font-weight: bold;
+      transform: scale(1.2);
+    }
+    
+    /* Style for fixed highlights */
+    .residue.fixed-highlight {
+      background: #4CAF50;
+      color: white;
+      font-weight: bold;
+      transform: scale(1.2);
+    }
+    
+    .position-number {
+      width: 16px;
+      height: 16px;
+      text-align: center;
+      font-size: 9px;
+      color: #aaa;
+      line-height: normal;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .position-number.major {
+      font-weight: bold;
+      color: #fff;
+      font-size: 10px;
+    }
+    
+    .residue.gap {
+      color: #888;
+    }
+    
+    .position-indicator .sequence-name {
+      color: transparent;
+    }
+    
+    .position-indicator .sequence-residues {
+      display: flex;
+    }
+    
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    /* Improved highlight buttons */
+    .highlight-btn.active {
+      background: linear-gradient(to right, #4b6cb7, #182848);
+      border-color: #ffcc00;
+    }
+    
+    @media (max-width: 1200px) {
+      .container {
+        flex-direction: column;
+      }
+      
+      .viewers-section {
+        min-width: 100%;
+      }
+      
+      .viewer {
+        max-width: 100%;
+      }
+      
+      .protein-controls {
+        grid-template-columns: 1fr;
+      }
+      
+      .residue {
+        width: 14px;
+        font-size: 12px;
+      }
+      
+      .position-number {
+        width: 14px;
+        font-size: 8px;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .sequence-name {
+        min-width: 80px;
+        width: 80px;
+        font-size: 12px;
+      }
+      
+      .residue {
+        width: 12px;
+        font-size: 10px;
+      }
+      
+      .position-number {
+        width: 12px;
+        font-size: 7px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Ancestral and Extant Protein Structure Comparison</h1>
+    <p class="subtitle">Visualization of Anc0, Cry2Ae & Cry2Ah structures</p>
+  </div>
+  
+  <div class="status-bar" id="statusBar">Loading protein structures...</div>
+  <div class="progress-bar" id="progressBar">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+  
+  <div class="container">
+    <div class="upload-section panel">
+      <div class="controls">
+        <div class="protein-upload">
+          <div class="protein-name">Preloaded Structures</div>
+          <p>Protein structures are automatically loaded from GitHub:</p>
+          <ul style="margin-top: 10px; padding-left: 20px;">
+            <li>Anc0: <a href="https://raw.githubusercontent.com/WK9233/Protein-Structures/refs/heads/main/Anc0.pdb" target="_blank">View PDB</a></li>
+            <li>Cry2Ae: <a href="https://raw.githubusercontent.com/WK9233/Protein-Structures/refs/heads/main/Cry2Ae.pdb" target="_blank">View PDB</a></li>
+            <li>Cry2Ah: <a href="https://raw.githubusercontent.com/WK9233/Protein-Structures/refs/heads/main/Cry2Ah.pdb" target="_blank">View PDB</a></li>
+          </ul>
+        </div>
+        
+        <button class="btn" onclick="loadAll()">Reload Structures</button>
+      </div>
+      
+      <div class="instructions">
+        <h3>Instructions & Tips</h3>
+        <ul>
+          <li>Structures are preloaded from GitHub repositories</li>
+          <li>Customize visualization for each protein using the controls below each viewer</li>
+          <li>Change representation style and coloring for each protein individually</li>
+          <li>Click on any amino acid in the sequence alignment to highlight it in all structures</li>
+          <li>Fixed highlights show important residues defined in the script</li>
+          <li>Hover over amino acids to see actual position in protein sequence</li>
+          <li>Use the "Reload Structures" button to refresh the structures</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="viewers-section">
+      <div class="viewer panel">
+        <div class="viewer-header">Anc0 Structure</div>
+        <div class="viewer-content">
+          <div id="jsmol1">Loading structure...</div>
+          <div class="protein-controls" id="controls1">
+            <div>
+              <label for="style1">Representation:</label>
+              <select id="style1" onchange="updateProtein(1)">
+                <option value="cartoon">Cartoon</option>
+                <option value="spacefill">Spheres</option>
+                <option value="sticks">Sticks</option>
+              </select>
+            </div>
+            <div>
+              <label>Coloring:</label>
+              <select id="colorScheme1" onchange="updateProtein(1)">
+                <option value="structure">Secondary Structure</option>
+                <option value="chain">By Chain</option>
+                <option value="group">By Group</option>
+                <option value="uniform">Uniform Color</option>
+              </select>
+              <div class="color-palette" id="colorPalette1" style="display: none;">
+                <div class="color-option selected" style="background: #FF5252;" onclick="selectColor(1, 'red')"></div>
+                <div class="color-option" style="background: #4CAF50;" onclick="selectColor(1, 'green')"></div>
+                <div class="color-option" style="background: #2196F3;" onclick="selectColor(1, 'blue')"></div>
+                <div class="color-option" style="background: #FFC107;" onclick="selectColor(1, 'yellow')"></div>
+                <div class="color-option" style="background: #9C27B0;" onclick="selectColor(1, 'purple')"></div>
+                <div class="color-option" style="background: #00BCD4;" onclick="selectColor(1, 'cyan')"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="viewer panel">
+        <div class="viewer-header">Cry2Ae Structure</div>
+        <div class="viewer-content">
+          <div id="jsmol2">Loading structure...</div>
+          <div class="protein-controls" id="controls2">
+            <div>
+              <label for="style2">Representation:</label>
+              <select id="style2" onchange="updateProtein(2)">
+                <option value="cartoon">Cartoon</option>
+                <option value="spacefill">Spheres</option>
+                <option value="sticks">Sticks</option>
+              </select>
+            </div>
+            <div>
+              <label>Coloring:</label>
+              <select id="colorScheme2" onchange="updateProtein(2)">
+                <option value="structure">Secondary Structure</option>
+                <option value="chain">By Chain</option>
+                <option value="group">By Group</option>
+                <option value="uniform">Uniform Color</option>
+              </select>
+              <div class="color-palette" id="colorPalette2" style="display: none;">
+                <div class="color-option selected" style="background: #FF5252;" onclick="selectColor(2, 'red')"></div>
+                <div class="color-option" style="background: #4CAF50;" onclick="selectColor(2, 'green')"></div>
+                <div class="color-option" style="background: #2196F3;" onclick="selectColor(2, 'blue')"></div>
+                <div class="color-option" style="background: #FFC107;" onclick="selectColor(2, 'yellow')"></div>
+                <div class="color-option" style="background: #9C27B0;" onclick="selectColor(2, 'purple')"></div>
+                <div class="color-option" style="background: #00BCD4;" onclick="selectColor(2, 'cyan')"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="viewer panel">
+        <div class="viewer-header">Cry2Ah Structure</div>
+        <div class="viewer-content">
+          <div id="jsmol3">Loading structure...</div>
+          <div class="protein-controls" id="controls3">
+            <div>
+              <label for="style3">Representation:</label>
+              <select id="style3" onchange="updateProtein(3)">
+                <option value="cartoon">Cartoon</option>
+                <option value="spacefill">Spheres</option>
+                <option value="sticks">Sticks</option>
+              </select>
+            </div>
+            <div>
+              <label>Coloring:</label>
+              <select id="colorScheme3" onchange="updateProtein(3)">
+                <option value="structure">Secondary Structure</option>
+                <option value="chain">By Chain</option>
+                <option value="group">By Group</option>
+                <option value="uniform">Uniform Color</option>
+              </select>
+              <div class="color-palette" id="colorPalette3" style="display: none;">
+                <div class="color-option selected" style="background: #FF5252;" onclick="selectColor(3, 'red')"></div>
+                <div class="color-option" style="background: #4CAF50;" onclick="selectColor(3, 'green')"></div>
+                <div class="color-option" style="background: #2196F3;" onclick="selectColor(3, 'blue')"></div>
+                <div class="color-option" style="background: #FFC107;" onclick="selectColor(3, 'yellow')"></div>
+                <div class="color-option" style="background: #9C27B0;" onclick="selectColor(3, 'purple')"></div>
+                <div class="color-option" style="background: #00BCD4;" onclick="selectColor(3, 'cyan')"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="alignment-viewer panel">
+        <div class="viewer-header">Sequence Alignment</div>
+        <div class="viewer-content">
+          <div class="sequence-alignment">
+            <div class="alignment-wrapper" id="sequenceAlignment">
+              <!-- Sequence alignment will be generated here -->
+              <div class="loading-text">
+                <div class="spinner"></div>
+                <span>Generating sequence alignment...</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="highlight-btns">
+            <button class="highlight-btn" onclick="clearHighlights()">Clear Temporary Highlights</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="footer">
+    <p>Advanced Protein Structure Visualization Tool | JSmol Powered | 2025 </p>
+  </div>
+
+  <script>
+    // Predefined GitHub URLs for the protein structures
+    const ANC0_URL = 'https://raw.githubusercontent.com/WK9233/Protein-Structures/refs/heads/main/Anc0.pdb';
+    const CRY2AE_URL = 'https://raw.githubusercontent.com/WK9233/Protein-Structures/refs/heads/main/Cry2Ae.pdb';
+    const CRY2AH_URL = 'https://raw.githubusercontent.com/WK9233/Protein-Structures/refs/heads/main/Cry2Ah.pdb';
+
+    const Info = {
+      width: 350,
+      height: 350,
+      use: "HTML5",
+      j2sPath: "https://chemapps.stolaf.edu/jmol/jsmol/j2s",
+      disableJ2SLoadMonitor: true,
+      disableInitialConsole: true,
+      contextMenu: {
+        menu: [
+          { text: "Zoom In", command: "zoom in" },
+          { text: "Zoom Out", command: "zoom out" },
+          { text: "Rotate", command: "rotate" },
+          { text: "Translate", command: "translate" },
+          { text: "Slab", command: "slab" },
+          { text: "Reset View", command: "reset" },
+          { text: "Measure Distance", command: "measure" },
+          { text: "Display All Atoms", command: "select all; spacefill on" },
+          { text: "Hide All Atoms", command: "select all; spacefill off" },
+          { text: "Show Secondary Structure", command: "select all; cartoon on" },
+          { text: "Show Console", command: "console" }
+        ]
+      }
+    };
+
+    let jmolApplet1, jmolApplet2, jmolApplet3;
+    let currentColors = {1: 'red', 2: 'red', 3: 'red'};
+    let loadedStructures = {1: null, 2: null, 3: null};
+    
+    // Alignment data from alignment.txt
+    const alignmentData = {
+      Anc0: "MNNVLNSGRTTICDAYNVVAHDPFSFEHKSLDTIQKEWMEWKRTDHSLYVAPIVGTVASFLLKKVGSLIGKRILSELRNLIFPSGSTNLMQDILRETEQFLNQRLNTDTLARVNAELTGLQANVEEFNRQVDNFLNPNQNPVPLSITSSVNTMQQLFLNRLPQFQIQGYQLLLLPLFAQAANLHLSFIRDVILNADEWGISAATLRTYRDHLRNYTRDYSNYCINTYQTAFRGLNTRLHDMLEFRTYMFLNVFEYVSIWSLFKYQSLMVSSGANLYASGSGPQQTQSFTAQDWPFLYSLFQVNSNYILSGFSGTRLTITFPNIGGLPGSTTTHSLHSARVNYSGGVSSGLIGATNLNHNFNCSTVLPPLSTPFVRSWLDSGTDREGVATSTNWQTESFETTLSLRCGAFSARGNSNYFPDYFIRNISGVPLVIRNEDLRRPLHYNEIRNIESPSGTPGGARAYLVSVHNRKNNIYAAHENGTMIHLAPEDYTGFTISPIHATQVNNQTRTFISEKFGNQGDSLRFEQSNTTARYTLRGNGNSYNLYLRVSSIGNSTIRVTINGRVYTVSNVNTTTNNDGVNDNGARFSDINIGNIVASDNTNVPLDINVTLNSGTQFDLMNIMFVPTNLPPLY",
+      Cry2Ae: "MNNVLNNGRTTICDAYNVVAHDPFSFEHKSLDTIRKEWMEWKRTDHSLYVAPIVGTVSSFLLKKVGSLIGKRILSELWGLIFPSGSTNLMQDILRETEQFLNQRLNTDTLARVNAELEGLQANIREFNQQVDNFLNPTQNPVPLSITSSVNTMQQLFLNRLPQFRVQGYQLLLLPLFAQAANMHLSFIRDVVLNADEWGISAATLRTYQNYLKNYTTEYSNYCINTYQTAFRGLNTRLHDMLEFRTYMFLNVFEYVSIWSLFKYQSLLVSSGANLYASGSGPQQTQSFTSQDWPFLYSLFQVNSNYVLNGFSGARLTQTFPNIGGLPGTTTTHALLAARVNYSGGVSSGDIGAV-FNQNFSCSTFLPPLLTPFVRSWLDSGSDRGGVNTVTNWQTESFESTLGLRCGAFTARGNSNYFPDYFIRNISGVPLVVRNEDLRRPLHYNEIRNIESPSGTPGGLRAYMVSVHNRKNNIYAVHENGTMIHLAPEDYTGFTISPIHATQVNNQTRTFISEKFGNQGDSLRFEQSNTTARYTLRGNGNSYNLYLRVSSLGNSTIRVTINGRVYTASNVNTTTNNDGVNDNGARFLDINMGNVVASDNTNVPLDINVTFNSGTQFELMNIMFVPTNLPPIY",
+      Cry2Ah: "MNSVLNSGRTTICDAYNVAAHDPFSFQHKSLDTVQKEWTEWKKNNHSLYLDPIVGTVASFLLKKVGSLVGKRILSELRNLIFPSGSTNLMQDILRETEKFLNQRLNTDTLARVNAELTGLQANVEEFNRQVDNFLNPNRNAVPLSITSSVNTMQQLFLNRLPQFQMQGYQLLLLPLFAQAANLHLSFIRDVILNADEWGISAATLRTYRDYLKNYTRDYSNYCINTYQSAFKGLNTRLHDMLEFRTYMFLNVFEYVSIWSLFKYQSLLVSSGANLYASGSGPQQTQSFTSQDWPFLYSLFQVNSNYVLNGFSGARLTQTFPNIVGLPGTTTTHALLAARVNYSGGVSSGDIGAV-FNQNFSCSTFLPPLLTPFVRSWLDSGSDRGGINTVTNWQTESFETTLGLRSGAFTARGNSNYFPDYFIRNISGVPLVVRNEDLRRPLHYNQIRNIESPSGTPGGLRAYMVSVHNRKNNIYAVHENGTMIHLAPEDYTGFTISPIHATQVNNQTRTFISEKFGNQGDSLRFEQSNTTARYTLRGNGNSYNLYLRVSSIGNSTIRVTINGRVYTASNVNTTTNNDGVNDNGARFSDINIGNVVASDNTNVPLDINVTLNSGTQFELMNIMFVPTNISPLY"
+    };
+     
+    // Fixed highlights configuration
+    const fixedHighlights = {
+      'Anc0': [
+        { position: 3, note: ' N ' },
+        { position: 7, note: ' S ' },
+        { position: 19, note: ' V ' },
+        { position: 27, note: ' E ' },
+        { position: 34, note: ' I ' },
+        { position: 35, note: ' Q ' },
+        { position: 39, note: ' M ' },
+        { position: 43, note: ' R ' },
+        { position: 44, note: ' T ' },
+        { position: 45, note: ' D ' },
+        { position: 50, note: ' V ' },
+        { position: 51, note: ' A ' },
+        { position: 58, note: ' A ' },
+        { position: 69, note: ' I ' },
+        { position: 78, note: ' R ' },
+        { position: 79, note: ' N ' },
+        { position: 99, note: ' Q ' },
+        { position: 118, note: ' T ' },
+        { position: 124, note: ' V ' },
+        { position: 125, note: ' E ' },
+        { position: 129, note: ' R ' },
+        { position: 138, note: ' N ' },
+        { position: 139, note: ' Q ' },
+        { position: 141, note: ' P ' },
+        { position: 165, note: ' Q ' },
+        { position: 166, note: ' I ' },
+        { position: 183, note: ' L ' },
+        { position: 192, note: ' I ' },
+        { position: 209, note: ' R ' },
+        { position: 210, note: ' D ' },
+        { position: 211, note: ' H ' },
+        { position: 213, note: ' R ' },
+        { position: 217, note: ' R ' },
+        { position: 218, note: ' D ' },
+        { position: 229, note: ' T ' },
+        { position: 232, note: ' R ' },
+        { position: 268, note: ' M ' },
+        { position: 290, note: ' A ' },
+        { position: 307, note: ' I ' },
+        { position: 309, note: ' S ' },
+        { position: 314, note: ' T ' },
+        { position: 318, note: ' I ' },
+        { position: 324, note: ' G ' },
+        { position: 329, note: ' S ' },
+        { position: 334, note: ' S ' },
+        { position: 336, note: ' H ' },
+        { position: 337, note: ' S ' },
+        { position: 350, note: ' L ' },
+        { position: 354, note: ' T ' },
+        { position: 355, note: ' N ' },
+        { position: 356, note: ' L ' },
+        { position: 358, note: ' H ' },
+        { position: 361, note: ' N ' },
+        { position: 365, note: ' V ' },
+        { position: 370, note: ' S ' },
+        { position: 382, note: ' T ' },
+        { position: 385, note: ' E ' },
+        { position: 387, note: ' V ' },
+        { position: 388, note: ' A ' },
+        { position: 390, note: ' S ' },
+        { position: 400, note: ' T ' },
+        { position: 403, note: ' S ' },
+        { position: 406, note: ' C ' },
+        { position: 410, note: ' S ' },
+        { position: 433, note: ' I ' },
+        { position: 446, note: ' E ' },
+        { position: 460, note: ' A ' },
+        { position: 464, note: ' L ' },
+        { position: 477, note: ' A ' },
+        { position: 552, note: ' I ' },
+        { position: 568, note: ' V ' },
+        { position: 588, note: ' S ' },
+        { position: 592, note: ' I ' },
+        { position: 595, note: ' I ' },
+        { position: 611, note: ' L ' },
+        { position: 618, note: ' D ' },
+        { position: 629, note: ' L ' },
+        { position: 630, note: ' P ' },
+        { position: 632, note: ' L ' }
+      ],
+      'Cry2Ae': [
+        { position: 3, note: ' N ' },
+        { position: 7, note: ' N ' },
+        { position: 19, note: ' V ' },
+        { position: 27, note: ' E ' },
+        { position: 34, note: ' I ' },
+        { position: 35, note: ' R ' },
+        { position: 39, note: ' M ' },
+        { position: 43, note: ' R ' },
+        { position: 44, note: ' T ' },
+        { position: 45, note: ' D ' },
+        { position: 50, note: ' V ' },
+        { position: 51, note: ' A ' },
+        { position: 58, note: ' S ' },
+        { position: 69, note: ' I ' },
+        { position: 78, note: ' W ' },
+        { position: 79, note: ' G ' },
+        { position: 99, note: ' Q ' },
+        { position: 118, note: ' E ' },
+        { position: 124, note: ' I ' },
+        { position: 125, note: ' R ' },
+        { position: 129, note: ' Q ' },
+        { position: 138, note: ' T ' },
+        { position: 139, note: ' Q ' },
+        { position: 141, note: ' P ' },
+        { position: 165, note: ' R ' },
+        { position: 166, note: ' V ' },
+        { position: 183, note: ' M ' },
+        { position: 192, note: ' V ' },
+        { position: 209, note: ' Q ' },
+        { position: 210, note: ' N ' },
+        { position: 211, note: ' Y ' },
+        { position: 213, note: ' K ' },
+        { position: 217, note: ' T ' },
+        { position: 218, note: ' E ' },
+        { position: 229, note: ' T ' },
+        { position: 232, note: ' R ' },
+        { position: 268, note: ' L ' },
+        { position: 290, note: ' S ' },
+        { position: 307, note: ' V ' },
+        { position: 309, note: ' N ' },
+        { position: 314, note: ' A ' },
+        { position: 318, note: ' Q ' },
+        { position: 324, note: ' G ' },
+        { position: 329, note: ' T ' },
+        { position: 334, note: ' A ' },
+        { position: 336, note: ' L ' },
+        { position: 337, note: ' A ' },
+        { position: 350, note: ' D ' },
+        { position: 354, note: ' V ' },
+        { position: 355, note: ' - ' },
+        { position: 356, note: ' F ' },
+        { position: 358, note: ' Q ' },
+        { position: 361, note: ' S ' },
+        { position: 365, note: ' F ' },
+        { position: 370, note: ' L ' },
+        { position: 382, note: ' S ' },
+        { position: 385, note: ' G ' },
+        { position: 387, note: ' V ' },
+        { position: 388, note: ' N ' },
+        { position: 390, note: ' V ' },
+        { position: 400, note: ' S ' },
+        { position: 403, note: ' G ' },
+        { position: 406, note: ' C ' },
+        { position: 410, note: ' T ' },
+        { position: 433, note: ' V ' },
+        { position: 446, note: ' E ' },
+        { position: 460, note: ' L ' },
+        { position: 464, note: ' M ' },
+        { position: 477, note: ' V ' },
+        { position: 552, note: ' L ' },
+        { position: 568, note: ' A ' },
+        { position: 588, note: ' L ' },
+        { position: 592, note: ' M ' },
+        { position: 595, note: ' V ' },
+        { position: 611, note: ' F ' },
+        { position: 618, note: ' E ' },
+        { position: 629, note: ' L ' },
+        { position: 630, note: ' P ' },
+        { position: 632, note: ' I ' }
+      ],
+      'Cry2Ah': [
+        { position: 3, note: ' S ' },
+        { position: 7, note: ' S ' },
+        { position: 19, note: ' A ' },
+        { position: 27, note: ' Q ' },
+        { position: 34, note: ' V ' },
+        { position: 35, note: ' Q ' },
+        { position: 39, note: ' T ' },
+        { position: 43, note: ' K ' },
+        { position: 44, note: ' N ' },
+        { position: 45, note: ' N ' },
+        { position: 50, note: ' L ' },
+        { position: 51, note: ' D ' },
+        { position: 58, note: ' A ' },
+        { position: 69, note: ' V ' },
+        { position: 78, note: ' R ' },
+        { position: 79, note: ' N ' },
+        { position: 99, note: ' K ' },
+        { position: 118, note: ' T ' },
+        { position: 124, note: ' V ' },
+        { position: 125, note: ' E ' },
+        { position: 129, note: ' R ' },
+        { position: 138, note: ' N ' },
+        { position: 139, note: ' R ' },
+        { position: 141, note: ' A ' },
+        { position: 165, note: ' Q ' },
+        { position: 166, note: ' M ' },
+        { position: 183, note: ' L ' },
+        { position: 192, note: ' I ' },
+        { position: 209, note: ' R ' },
+        { position: 210, note: ' D ' },
+        { position: 211, note: ' Y ' },
+        { position: 213, note: ' K ' },
+        { position: 217, note: ' R ' },
+        { position: 218, note: ' D ' },
+        { position: 229, note: ' S ' },
+        { position: 232, note: ' K ' },
+        { position: 268, note: ' L ' },
+        { position: 290, note: ' S ' },
+        { position: 307, note: ' V ' },
+        { position: 309, note: ' N ' },
+        { position: 314, note: ' A ' },
+        { position: 318, note: ' Q ' },
+        { position: 324, note: ' V ' },
+        { position: 329, note: ' T ' },
+        { position: 334, note: ' A ' },
+        { position: 336, note: ' L ' },
+        { position: 337, note: ' A ' },
+        { position: 350, note: ' D ' },
+        { position: 354, note: ' V ' },
+        { position: 355, note: ' - ' },
+        { position: 356, note: ' F ' },
+        { position: 358, note: ' Q ' },
+        { position: 361, note: ' S ' },
+        { position: 365, note: ' F ' },
+        { position: 370, note: ' L ' },
+        { position: 382, note: ' S ' },
+        { position: 385, note: ' G ' },
+        { position: 387, note: ' I ' },
+        { position: 388, note: ' N ' },
+        { position: 390, note: ' V ' },
+        { position: 400, note: ' T ' },
+        { position: 403, note: ' G ' },
+        { position: 406, note: ' S ' },
+        { position: 410, note: ' T ' },
+        { position: 433, note: ' V ' },
+        { position: 446, note: ' Q ' },
+        { position: 460, note: ' L ' },
+        { position: 464, note: ' M ' },
+        { position: 477, note: ' V ' },
+        { position: 552, note: ' I ' },
+        { position: 568, note: ' A ' },
+        { position: 588, note: ' S ' },
+        { position: 592, note: ' I ' },
+        { position: 595, note: ' V ' },
+        { position: 611, note: ' L ' },
+        { position: 618, note: ' E ' },
+        { position: 629, note: ' I ' },
+        { position: 630, note: ' S ' },
+        { position: 632, note: ' L ' }
+      ]
+    };
+
+    // Function to calculate actual position in sequence (accounting for gaps)
+    function getActualPosition(sequence, alignmentPosition) {
+      let actualPos = 0;
+      for (let i = 0; i < Math.min(sequence.length, alignmentPosition); i++) {
+        if (sequence[i] !== '-') {
+          actualPos++;
+        }
+      }
+      return actualPos;
+    }
+
+    function updateStatus(message, type) {
+      const statusBar = document.getElementById('statusBar');
+      statusBar.textContent = message;
+      statusBar.className = 'status-bar ' + type;
+      statusBar.style.display = 'block';
+      
+      if (type === 'loading') {
+        document.getElementById('progressBar').style.display = 'block';
+      } else {
+        document.getElementById('progressBar').style.display = 'none';
+      }
+      
+      if (type === 'success' || type === 'error') {
+        setTimeout(() => {
+          statusBar.style.display = 'none';
+        }, 5000);
+      }
+    }
+
+    function updateProgress(percent) {
+      document.getElementById('progressFill').style.width = percent + '%';
+    }
+
+    function getStyleScript(style) {
+      switch (style) {
+        case "cartoon":
+          return "select all; cartoon only;";
+        case "spacefill":
+          return "select all; spacefill on; wireframe off; cartoon off;";
+        case "sticks":
+          return "select all; wireframe 200; spacefill off; cartoon off;";
+        default:
+          return "select all; cartoon only;";
+      }
+    }
+
+    function getColorScript(colorScheme, index) {
+      switch (colorScheme) {
+        case "structure":
+          return "color structure;";
+        case "chain":
+          return "color chain;";
+        case "group":
+          return "color group;";
+        case "uniform":
+          return `color ${currentColors[index]};`;
+        default:
+          return "color structure;";
+      }
+    }
+
+    function updateProtein(index) {
+      const applet = index === 1 ? jmolApplet1 : index === 2 ? jmolApplet2 : index === 3 ? jmolApplet3 : null;
+      if (!applet) return;
+      
+      const style = document.getElementById(`style${index}`).value;
+      const colorScheme = document.getElementById(`colorScheme${index}`).value;
+      const palette = document.getElementById(`colorPalette${index}`);
+      
+      if (colorScheme === "uniform") {
+        palette.style.display = "flex";
+      } else {
+        palette.style.display = "none";
+      }
+      
+      const script = `
+        select all; 
+        ${getStyleScript(style)}
+        ${getColorScript(colorScheme, index)}
+      `;
+      Jmol.script(applet, script);
+    }
+
+    function selectColor(index, color) {
+      currentColors[index] = color;
+      const palette = document.getElementById(`colorPalette${index}`);
+      const options = palette.querySelectorAll('.color-option');
+      
+      options.forEach(opt => {
+        opt.classList.remove('selected');
+        if (opt.style.backgroundColor.includes(color.replace(/[a-z]+/, ''))) {
+          opt.classList.add('selected');
+        }
+      });
+      
+      updateProtein(index);
+    }
+
+    function loadProtein(index, content) {
+      const appletId = `jmol${index}`;
+      const containerId = `jsmol${index}`;
+      
+      const style = document.getElementById(`style${index}`).value;
+      const colorScheme = document.getElementById(`colorScheme${index}`).value;
+      
+      const fullScript = `
+        load DATA "model"\n${content}\nEND "model";
+        ${getStyleScript(style)}
+        ${getColorScript(colorScheme, index)}
+      `;
+
+      const applet = Jmol.getApplet(appletId, Object.assign({}, Info, {
+        script: fullScript
+      }));
+      
+      document.getElementById(containerId).innerHTML = Jmol.getAppletHtml(applet);
+
+      if (index === 1) jmolApplet1 = applet;
+      if (index === 2) jmolApplet2 = applet;
+      if (index === 3) jmolApplet3 = applet;
+      
+      loadedStructures[index] = content;
+      
+      // Generate sequence alignment when all structures are loaded
+      if (loadedStructures[1] && loadedStructures[2] && loadedStructures[3]) {
+        generateSequenceAlignment();
+      }
+    }
+
+    function generateSequenceAlignment() {
+      const container = document.getElementById('sequenceAlignment');
+      container.innerHTML = '';
+      
+      // Create position indicator row
+      const positionRow = document.createElement('div');
+      positionRow.className = 'alignment-row position-indicator';
+      
+      // Create empty sequence name for position indicator
+      const positionName = document.createElement('div');
+      positionName.className = 'sequence-name';
+      positionName.textContent = '';
+      positionRow.appendChild(positionName);
+      
+      // Create residues container for position numbers
+      const positionResidues = document.createElement('div');
+      positionResidues.className = 'sequence-residues';
+      
+      // Add position numbers for every residue
+      for (let i = 1; i <= alignmentData.Anc0.length; i++) {
+        const pos = document.createElement('span');
+        pos.className = 'position-number';
+        // Show only every 10th number to avoid clutter
+        if (i % 10 === 0) {
+          pos.textContent = i;
+          pos.classList.add('major');
+        } else {
+          pos.textContent = i % 10 === 0 ? i : (i % 10);
+        }
+        positionResidues.appendChild(pos);
+      }
+      
+      positionRow.appendChild(positionResidues);
+      container.appendChild(positionRow);
+      
+      // Create sequence lines for each protein
+      for (const [name, seq] of Object.entries(alignmentData)) {
+        const line = document.createElement('div');
+        line.className = 'alignment-row sequence-line';
+        
+        const nameSpan = document.createElement('div');
+        nameSpan.className = 'sequence-name';
+        nameSpan.textContent = name;
+        line.appendChild(nameSpan);
+        
+        const residues = document.createElement('div');
+        residues.className = 'sequence-residues';
+        
+        for (let i = 0; i < seq.length; i++) {
+          const res = document.createElement('span');
+          res.className = 'residue';
+          res.textContent = seq[i];
+          res.dataset.position = i + 1;
+          res.dataset.protein = name;
+          
+          // Calculate actual position for Cry2Ae and Cry2Ah
+          let actualPos = '';
+          if (name === 'Cry2Ae' || name === 'Cry2Ah') {
+            actualPos = getActualPosition(seq, i + 1);
+            if (seq[i] !== '-') {
+              res.title = `${name} position: ${actualPos} (alignment: ${i+1})`;
+            } else {
+              res.title = `${name} gap at alignment position: ${i+1}`;
+            }
+          } else {
+            actualPos = i + 1;
+            res.title = `${name} position: ${i+1}`;
+          }
+          
+          // Store actual position in dataset
+          res.dataset.actualPosition = actualPos;
+          
+          // Apply fixed highlights if defined for this position
+          const fixedHighlight = fixedHighlights[name]?.find(h => h.position === i + 1);
+          if (fixedHighlight) {
+            res.classList.add('fixed-highlight');
+            res.title += `\nFixed Highlight: ${fixedHighlight.note}`;
+          }
+          
+          // Mark gaps with special styling
+          if (seq[i] === '-') {
+            res.classList.add('gap');
+          }
+          
+          res.addEventListener('click', () => highlightResidueInAllStructures(name, i + 1));
+          
+          residues.appendChild(res);
+        }
+        
+        line.appendChild(residues);
+        container.appendChild(line);
+      }
+    }
+    
+    function highlightResidueInAllStructures(proteinName, position) {
+      // First clear all temporary highlights
+      clearHighlights();
+      
+      // Highlight in sequence
+      const residues = document.querySelectorAll('.residue');
+      residues.forEach(res => {
+        if (res.dataset.position == position) {
+          // Only add temporary highlight if not already fixed
+          if (!res.classList.contains('fixed-highlight')) {
+            res.classList.add('highlighted');
+          }
+        }
+      });
+      
+      // Calculate the corresponding positions in each protein
+      const positions = calculateCorrespondingPositions(proteinName, position);
+      
+      // Highlight in all 3D structures
+      for (let i = 1; i <= 3; i++) {
+        const applet = i === 1 ? jmolApplet1 : i === 2 ? jmolApplet2 : jmolApplet3;
+        if (!applet) continue;
+        
+        const style = document.getElementById(`style${i}`).value;
+        const colorScheme = document.getElementById(`colorScheme${i}`).value;
+        const targetPos = positions[`pdb${i}`];
+        
+        if (targetPos !== null) {
+          const script = `
+            select all; ${getStyleScript(style)}
+            ${getColorScript(colorScheme, i)}
+            select ${targetPos}; color red; spacefill 150;
+          `;
+          Jmol.script(applet, script);
+        }
+      }
+    }
+    
+    function calculateCorrespondingPositions(proteinName, position) {
+      // This function calculates the corresponding positions in all proteins
+      // based on the alignment data. It accounts for gaps in the sequences.
+      
+      const result = { pdb1: null, pdb2: null, pdb3: null };
+      
+      // First, find the position in the original sequence (without gaps)
+      let originalPos = 0;
+      let alignmentPos = 0;
+      
+      // Find the original position in the clicked protein
+      const clickedSeq = alignmentData[proteinName];
+      for (let i = 0; i < clickedSeq.length; i++) {
+        if (i + 1 === position) break;
+        if (clickedSeq[i] !== '-') originalPos++;
+      }
+      
+      // Now find corresponding positions in all proteins
+      for (const [name, seq] of Object.entries(alignmentData)) {
+        let currentOriginalPos = 0;
+        let currentAlignmentPos = 0;
+        
+        for (let i = 0; i < seq.length; i++) {
+          currentAlignmentPos = i + 1;
+          
+          if (seq[i] !== '-') {
+            currentOriginalPos++;
+          }
+          
+          if (currentOriginalPos === originalPos) {
+            if (name === 'Anc0') result.pdb1 = currentAlignmentPos;
+            if (name === 'Cry2Ae') result.pdb2 = currentAlignmentPos;
+            if (name === 'Cry2Ah') result.pdb3 = currentAlignmentPos;
+            break;
+          }
+        }
+      }
+      
+      return result;
+    }
+    
+    function clearHighlights() {
+      // Clear temporary highlights in sequence
+      const residues = document.querySelectorAll('.residue.highlighted');
+      residues.forEach(res => {
+        res.classList.remove('highlighted');
+      });
+      
+      // Clear highlights in 3D structures
+      for (let i = 1; i <= 3; i++) {
+        const applet = i === 1 ? jmolApplet1 : i === 2 ? jmolApplet2 : jmolApplet3;
+        if (!applet) continue;
+        
+        const style = document.getElementById(`style${i}`).value;
+        const colorScheme = document.getElementById(`colorScheme${i}`).value;
+        
+        const script = `
+          select all; ${getStyleScript(style)}
+          ${getColorScript(colorScheme, i)}
+        `;
+        Jmol.script(applet, script);
+      }
+    }
+
+    function loadAll() {
+      updateStatus("Loading protein structures...", "loading");
+      updateProgress(0);
+      
+      const urls = [ANC0_URL, CRY2AE_URL, CRY2AH_URL];
+      const proteinNames = ['Anc0', 'Cry2Ae', 'Cry2Ah'];
+      let loadedCount = 0;
+      const totalToLoad = 3;
+      
+      for (let i = 0; i < 3; i++) {
+        const index = i + 1;
+        const proteinName = proteinNames[i];
+        
+        updateStatus(`Loading ${proteinName} from GitHub...`, "loading");
+        
+        fetch(urls[i])
+          .then(res => {
+            if (!res.ok) throw new Error(`Failed to fetch ${urls[i]}`);
+            return res.text();
+          })
+          .then(data => {
+            loadProtein(index, data);
+            loadedCount++;
+            updateProgress(Math.round((loadedCount / totalToLoad) * 100));
+            if (loadedCount === totalToLoad) {
+              updateStatus("All structures loaded successfully!", "success");
+            }
+          })
+          .catch(err => {
+            console.error(err);
+            updateStatus(`Error loading ${proteinName}: ${err.message}`, "error");
+            loadedCount++;
+            updateProgress(Math.round((loadedCount / totalToLoad) * 100));
+          });
+      }
+    }
+    
+    // Automatically load structures when page is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      generateSequenceAlignment();
+      loadAll();
+    });
+  </script>
+</body>
+</html>
